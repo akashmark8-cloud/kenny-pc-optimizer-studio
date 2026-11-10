@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <style>
+    @keyframes hueShift {
+      0%   { stop-color: #00e5ff; }
+      50%  { stop-color: #10b981; }
+      100% { stop-color: #8b5cf6; }
+    }
+    .heroGrad stop { animation: hueShift 7s ease-in-out infinite alternate; }
+    @keyframes scanMove {
+      0%   { transform: translateY(-24px); }
+      100% { transform: translateY(324px); }
+    }
+    .scan { animation: scanMove 4.5s linear infinite; }
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50%      { transform: scale(0.94); opacity: 0.55; }
+    }
+    .shield { transform-origin: 145px 150px; animation: pulseRing 3s ease-in-out infinite; }
+    @keyframes spinArc { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .arc { transform-origin: 145px 150px; animation: spinArc 14s linear infinite; }
+  </style>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#050814"/>
+      <stop offset="55%" stop-color="#0a1328"/>
+      <stop offset="100%" stop-color="#080c1f"/>
+    </linearGradient>
+    <linearGradient class="heroGrad" id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#00e5ff" stop-opacity="0.09"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clip"><rect x="2" y="2" width="1196" height="296" rx="16"/></clipPath>
+  </defs>
+
+  <rect x="2" y="2" width="1196" height="296" rx="16" fill="url(#bg)" stroke="url(#accent)" stroke-width="2"/>
+  <g clip-path="url(#clip)">
+    <rect class="scan" x="0" y="0" width="1200" height="24" fill="url(#scanGrad)"/>
+  </g>
+
+  <!-- Corner Brackets -->
+  <g stroke="#00e5ff" stroke-width="2.2" fill="none">
+    <path d="M18 44 V18 H44"/>
+    <path d="M1156 18 H1182 V44"/>
+    <path d="M1182 256 V282 H1156" stroke="#10b981"/>
+    <path d="M44 282 H18 V256" stroke="#10b981"/>
+  </g>
+
+  <!-- Left Shield Emblem -->
+  <circle class="arc" cx="145" cy="150" r="76" fill="none" stroke="#00e5ff" stroke-width="2" stroke-dasharray="36 18 10 18" stroke-linecap="round"/>
+  <g class="shield">
+    <path d="M145 92 L195 112 V154 C195 188 172 212 145 224 C118 212 95 188 95 154 V112 Z" fill="#0d1e3b" stroke="#10b981" stroke-width="2.5"/>
+    <path d="M153 122 L123 160 H144 L137 195 L168 154 H147 Z" fill="#00e5ff"/>
+  </g>
+
+  <!-- Title & Tagline -->
+  <text x="260" y="96" font-family="Consolas, monospace" font-size="13" fill="#10b981" letter-spacing="2.5">// STANDALONE WINDOWS x64 SUITE :: ZERO DEPENDENCIES</text>
+  <text x="260" y="148" font-size="44" font-weight="900" fill="#f8fafc" letter-spacing="0.5">Kenny PC Optimizer Studio</text>
+  <rect x="260" y="166" width="660" height="3.5" rx="2" fill="url(#accent)"/>
+  <text x="260" y="198" font-size="17" fill="#cbd5e1">System &amp; Game Cleaner · Universal Browser Scrub · Safe Registry &amp; Backups · Kernel RAM Boost · Driver Advisor</text>
+
+  <!-- Feature Chips -->
+  <g font-family="Consolas, monospace" font-size="12" font-weight="700">
+    <rect x="260" y="220" width="165" height="28" rx="14" fill="#07182c" stroke="#00e5ff" stroke-opacity="0.7"/>
+    <text x="342" y="238" text-anchor="middle" fill="#00e5ff">SINGLE-FILE .EXE</text>
+    <rect x="438" y="220" width="195" height="28" rx="14" fill="#06221c" stroke="#10b981" stroke-opacity="0.7"/>
+    <text x="535" y="238" text-anchor="middle" fill="#39ff88">PRE-CLEAN BACKUP VAULT</text>
+    <rect x="646" y="220" width="185" height="28" rx="14" fill="#170f2e" stroke="#8b5cf6" stroke-opacity="0.7"/>
+    <text x="738" y="238" text-anchor="middle" fill="#c4b5fd">NT KERNEL RAM BOOST</text>
+    <rect x="844" y="220" width="165" height="28" rx="14" fill="#1e1508" stroke="#f59e0b" stroke-opacity="0.7"/>
+    <text x="926" y="238" text-anchor="middle" fill="#fbbf24">MIT LICENSED</text>
+  </g>
+</svg>
