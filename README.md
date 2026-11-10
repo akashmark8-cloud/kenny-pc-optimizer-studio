@@ -5,6 +5,7 @@
 <br/>
 
 [![Release](https://img.shields.io/github/v/release/akashmark8-cloud/kenny-pc-optimizer-studio?style=for-the-badge&color=00e5ff&labelColor=0b1228&logo=github)](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/latest)
+[![Build & Test](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/actions/workflows/ci-and-release.yml/badge.svg)](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/actions/workflows/ci-and-release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-39ff88?style=for-the-badge&labelColor=0b1228)](LICENSE)
 [![Platform](https://img.shields.io/badge/Windows-10_%2F_11_x64-38bdf8?style=for-the-badge&labelColor=0b1228&logo=windows)](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/latest)
 [![Zero Dependencies](https://img.shields.io/badge/Runtime-.NET_4.x_Standalone-ff2ec4?style=for-the-badge&labelColor=0b1228)](src/build.ps1)
@@ -109,6 +110,12 @@ flowchart TD
 1. Download **`Kenny_PC_Optimizer_Suite.exe`** from the **[Latest Release](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/latest)**.
 2. Double-click `Kenny_PC_Optimizer_Suite.exe` from anywhere (Desktop, Downloads, or USB).
 3. For full system privileges (`Windows Temp`, `wuauserv`, `HKLM\SOFTWARE`, kernel Standby/Cache lists, and System Restore Points), right-click → **Run as administrator** or click **Elevate (UAC)** inside the app header.
+
+## 🔒 Build Verification & Transparency
+
+- Every release binary is compiled directly on GitHub's `windows-latest` runner via [ci-and-release.yml](.github/workflows/ci-and-release.yml) with **SLSA build provenance attestation**.
+- Each release attaches `SHA256SUMS.txt` and a direct **VirusTotal** SHA-256 verification link inside the Release Notes.
+- Zero external runtime downloads, zero background telemetry, and an interactive **Simulation (Dry-Run)** mode to preview every operation safely.
 
 ---
 

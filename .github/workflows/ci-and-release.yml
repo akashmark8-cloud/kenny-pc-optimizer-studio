@@ -1,0 +1,113 @@
+name: Build, Test & Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build-test-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile standalone Kenny_PC_Optimizer_Suite.exe
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\src\build.ps1 -OutName Kenny_PC_Optimizer_Suite.exe
+
+      - name: Compile and run all 6 C# test suites
+        shell: powershell
+        run: |
+          $csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          $testExe = Join-Path $env:TEMP "kenny_ci_tests.exe"
+          & $csc /nologo /platform:x64 /out:$testExe `
+            /resource:"src\ui\index.html,ui.index.html" `
+            /resource:"src\ui\styles.css,ui.styles.css" `
+            /resource:"src\ui\app.js,ui.app.js" `
+            /resource:"src\assets\app_icon.ico,assets.app_icon.ico" `
+            /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
+            /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll `
+            /r:System.ServiceProcess.dll /r:System.Management.dll /r:System.Web.Extensions.dll `
+            src\Config.cs src\SystemInfo.cs src\SqliteHelper.cs src\JobManager.cs `
+            src\BackupManager.cs src\SystemCleaner.cs src\BrowserCleaner.cs `
+            src\RegistryCleaner.cs src\MemoryOptimizer.cs src\SystemAdvisor.cs `
+            src\WebServer.cs tests\StandaloneTests.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $testExe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify isolated standalone self-check
+        shell: powershell
+        run: |
+          $tmp = Join-Path $env:TEMP "kenny_ci_solo"
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+          Copy-Item .\Kenny_PC_Optimizer_Suite.exe $tmp\Kenny_PC_Optimizer_Suite.exe
+          $p = Start-Process -FilePath "$tmp\Kenny_PC_Optimizer_Suite.exe" -ArgumentList "--self-check" -WorkingDirectory $tmp -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Self-check exited with $($p.ExitCode)" }
+
+      - name: Generate SHA-256 checksum
+        id: hash
+        shell: powershell
+        run: |
+          $sha = (Get-FileHash .\Kenny_PC_Optimizer_Suite.exe -Algorithm SHA256).Hash.ToLower()
+          "$sha  Kenny_PC_Optimizer_Suite.exe" | Out-File -FilePath .\SHA256SUMS.txt -Encoding ascii
+          echo "sha256=$sha" >> $env:GITHUB_OUTPUT
+          Get-Content .\SHA256SUMS.txt
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kenny_PC_Optimizer_Suite
+          path: |
+            Kenny_PC_Optimizer_Suite.exe
+            SHA256SUMS.txt
+
+      - name: Attest build provenance
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: Kenny_PC_Optimizer_Suite.exe
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA256: ${{ steps.hash.outputs.sha256 }}
+        shell: powershell
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $runUrl = "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)/actions/runs/$($env:GITHUB_RUN_ID)"
+          $vtUrl = "https://www.virustotal.com/gui/file/$($env:SHA256)"
+          $notes = @"
+## Kenny PC Cleaner & Optimization Studio ($tag)
+
+Built reproducibly from source on GitHub Actions (\`windows-latest\`) with all 6 test suites and \`--self-check\` passing.
+
+### Verification & Trust
+- **SHA-256**: \`$($env:SHA256)\` (also attached in \`SHA256SUMS.txt\`)
+- **VirusTotal Lookup**: $vtUrl
+- **GitHub Actions Build Run**: $runUrl
+- **SLSA Build Provenance**: Attested directly in GitHub Actions
+
+### Features Included
+- **System, Shader, Dev & Game Cleaner**: Upgrades \`Master_Delete.bat\` (User/Win Temp, NVIDIA DXCache, Recycle Bin, \`wuauserv\` Update Cache, \`npm\`/\`pip\`, CS2 \`.mdmp\` across all Steam libraries + PUBG crashes/logs)
+- **Universal Multi-Browser Cleaner**: Chromium, Gecko, IE/WebCache + bookmark-safe Firefox \`places.sqlite\` scrubbing (\`winsqlite3.dll\`)
+- **Safe Empty-Registry Cleaner**: Scans \`HKCU\Software\`, \`HKLM\SOFTWARE\`, and \`WOW6432Node\` excluding OS keys, deleting bottom-up after re-verification
+- **Mandatory Pre-Clean Backup Vault**: Surgical \`.reg\` undo, full hive ZIP exports, PC snapshot ZIP, Windows Restore Point, and SHA-256 verification
+- **NT Kernel & Per-Process RAM Optimizer**: Working sets, low-priority standby, system file cache, physical page combiner, per-process trim, and Auto-Boost
+- **Drivers, App Updates & Essentials Advisor**: Hardware/BIOS/driver scan, Windows Update COM check, \`winget\` updates & 1-click essential runtime installs
+"@
+          gh release create $tag .\Kenny_PC_Optimizer_Suite.exe .\SHA256SUMS.txt --title "Kenny PC Cleaner & Optimization Studio $tag" --notes $notes
