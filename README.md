@@ -113,19 +113,25 @@ flowchart TD
 
 ## 🔒 Build Verification & Transparency
 
-- **Latest Release (`v2.0.2`)**: [`Kenny_PC_Optimizer_Suite.exe`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.2/Kenny_PC_Optimizer_Suite.exe) (`301,056` bytes)
-- **SHA-256 (`v2.0.2`)**: `19eabb13d657634634955e05e751932104b08ad17a49a9128c040d9a7bab9f7a` ([`SHA256SUMS.txt`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.2/SHA256SUMS.txt))
-- **VirusTotal (`v2.0.2`)**: https://www.virustotal.com/gui/file/19eabb13d657634634955e05e751932104b08ad17a49a9128c040d9a7bab9f7a
+- **Latest Release (`v2.0.3`)**: [`Kenny_PC_Optimizer_Suite.exe`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.3/Kenny_PC_Optimizer_Suite.exe) (`302,080` bytes)
+- **SHA-256 (`v2.0.3`)**: `fe8e2542c2970f5158d91770d682b25520bec20906b98381e382aa9b93252760` ([`SHA256SUMS.txt`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.3/SHA256SUMS.txt))
+- **VirusTotal (`v2.0.3`)**: https://www.virustotal.com/gui/file/fe8e2542c2970f5158d91770d682b25520bec20906b98381e382aa9b93252760
 - **SLSA Provenance**: Every release binary is compiled directly on GitHub's `windows-latest` runner via [ci-and-release.yml](.github/workflows/ci-and-release.yml) with **SLSA build provenance attestation** (`gh attestation verify Kenny_PC_Optimizer_Suite.exe --owner akashmark8-cloud`).
 - **Windows Defender**: Verified clean locally via `MpCmdRun.exe` (`0 threats`).
-- **Hardening (`v2.0.2`)**: Added full PE `AssemblyInfo` metadata, replaced `powershell.exe` subprocess calls with native WMI (`root\default:SystemRestore`), and removed unnecessary `SeDebugPrivilege` to minimize false-positive heuristics on unsigned builds.
+- **Hardening (`v2.0.2` – `v2.0.3`)**: Added full PE `AssemblyInfo` metadata, replaced `powershell.exe` subprocess calls (`v2.0.2`), switched Windows System Restore creation to native Win32 `srclient.dll` (`SRSetRestorePointW`, `v2.0.3`), and removed unnecessary `SeDebugPrivilege` to minimize false-positive heuristics on unsigned builds.
 - Zero external runtime downloads, zero background telemetry, and an interactive **Simulation (Dry-Run)** mode to preview every operation safely.
+
+### Code Signing Policy & Privacy Policy
+
+- **Code Signing Status**: Release binaries are currently unsigned (with SignPath Foundation open-source code signing application under review) and are verifiable via `SHA256SUMS.txt` and GitHub SLSA Build Provenance.
+- **Maintainer Roles**: Authors, Reviewers, and Approvers — [`@akashmark8-cloud`](https://github.com/akashmark8-cloud) (with GitHub 2FA enabled).
+- **Privacy Policy**: This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. All scans, backups, and the browser dashboard run offline on local loopback (`127.0.0.1`).
 
 <details>
 <summary>Why can an unsigned Windows system utility trigger SmartScreen or 1–3 VirusTotal heuristic flags?</summary>
 
-- `Kenny_PC_Optimizer_Suite.exe` is an **unsigned** open-source `.exe` that legitimately calls Windows maintenance APIs (`reg.exe`, `winsqlite3.dll`, `NtSetSystemInformation`, `EmptyWorkingSet`, and `ServiceController`).
-- On `v2.0.1`, 44/47 VirusTotal engines (including Microsoft Defender and CrowdStrike Falcon) reported `Undetected`, while 3 heuristic/unknown-hash engines flagged generic warnings (such as `McAfee Scanner: Ti!C9231F2D67AE`, which flags newly seen unsigned SHA-256 hashes with zero prior prevalence).
+- `Kenny_PC_Optimizer_Suite.exe` is an **unsigned** open-source `.exe` that legitimately calls Windows maintenance APIs (`reg.exe`, `winsqlite3.dll`, `srclient.dll`, `NtSetSystemInformation`, `EmptyWorkingSet`, and `ServiceController`).
+- On `v2.0.2`, **68/71** VirusTotal engines (including `BitDefender`, `CrowdStrike Falcon`, `Avast`, `AVG`, `Avira`, `Bkav Pro`, and `ClamAV`) reported `Undetected`, while 3 cloud-ML / unknown-hash engines (`McAfee Scanner: Ti!19EABB13D657`, `Microsoft: Program:Win32/Wacapew.C!ml`, and `SecureAge: Malicious`) flagged generic heuristics common to brand-new unsigned `.NET` binaries.
 - You can always verify integrity using `gh attestation verify`, inspect every line in `src/`, or compile your own `.exe` locally in seconds using `.\src\build.ps1`.
 
 </details>
