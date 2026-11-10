@@ -115,9 +115,9 @@ flowchart TD
 
 - **Latest Release (`v2.0.3`)**: [`Kenny_PC_Optimizer_Suite.exe`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.3/Kenny_PC_Optimizer_Suite.exe) (`302,080` bytes)
 - **SHA-256 (`v2.0.3`)**: `fe8e2542c2970f5158d91770d682b25520bec20906b98381e382aa9b93252760` ([`SHA256SUMS.txt`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.3/SHA256SUMS.txt))
-- **VirusTotal (`v2.0.3`)**: https://www.virustotal.com/gui/file/fe8e2542c2970f5158d91770d682b25520bec20906b98381e382aa9b93252760
+- **VirusTotal (`v2.0.3`)**: [`69 / 71` Undetected (`2 / 71` unsigned heuristics)](https://www.virustotal.com/gui/file/fe8e2542c2970f5158d91770d682b25520bec20906b98381e382aa9b93252760)
 - **SLSA Provenance**: Every release binary is compiled directly on GitHub's `windows-latest` runner via [ci-and-release.yml](.github/workflows/ci-and-release.yml) with **SLSA build provenance attestation** (`gh attestation verify Kenny_PC_Optimizer_Suite.exe --owner akashmark8-cloud`).
-- **Windows Defender**: Verified clean locally via `MpCmdRun.exe` (`0 threats`).
+- **Windows Defender**: Verified clean locally (`0 threats` via `MpCmdRun.exe`) and `Undetected` on VirusTotal `v2.0.3`.
 - **Hardening (`v2.0.2` – `v2.0.3`)**: Added full PE `AssemblyInfo` metadata, replaced `powershell.exe` subprocess calls (`v2.0.2`), switched Windows System Restore creation to native Win32 `srclient.dll` (`SRSetRestorePointW`, `v2.0.3`), and removed unnecessary `SeDebugPrivilege` to minimize false-positive heuristics on unsigned builds.
 - Zero external runtime downloads, zero background telemetry, and an interactive **Simulation (Dry-Run)** mode to preview every operation safely.
 
@@ -128,10 +128,10 @@ flowchart TD
 - **Privacy Policy**: This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. All scans, backups, and the browser dashboard run offline on local loopback (`127.0.0.1`).
 
 <details>
-<summary>Why can an unsigned Windows system utility trigger SmartScreen or 1–3 VirusTotal heuristic flags?</summary>
+<summary>Why can an unsigned Windows system utility trigger SmartScreen or 2/71 VirusTotal heuristic flags?</summary>
 
 - `Kenny_PC_Optimizer_Suite.exe` is an **unsigned** open-source `.exe` that legitimately calls Windows maintenance APIs (`reg.exe`, `winsqlite3.dll`, `srclient.dll`, `NtSetSystemInformation`, `EmptyWorkingSet`, and `ServiceController`).
-- On `v2.0.2`, **68/71** VirusTotal engines (including `BitDefender`, `CrowdStrike Falcon`, `Avast`, `AVG`, `Avira`, `Bkav Pro`, and `ClamAV`) reported `Undetected`, while 3 cloud-ML / unknown-hash engines (`McAfee Scanner: Ti!19EABB13D657`, `Microsoft: Program:Win32/Wacapew.C!ml`, and `SecureAge: Malicious`) flagged generic heuristics common to brand-new unsigned `.NET` binaries.
+- On **`v2.0.3`**, **69 / 71** VirusTotal engines (including `Microsoft`, `BitDefender`, `CrowdStrike Falcon`, `Avast`, `AVG`, `Avira`, `Bkav Pro`, and `ClamAV`) report **`Undetected`**, while only **2 / 71** unsigned/zero-prevalence heuristics remain (`McAfee Scanner: Ti!FE8E2542C297`, which keys off the SHA-256 hash of a new unsigned binary, and `SecureAge: Malicious`). Switching System Restore creation to `srclient.dll` (`SRSetRestorePointW`) cleared the `Microsoft` cloud-ML detection from `v2.0.2`.
 - You can always verify integrity using `gh attestation verify`, inspect every line in `src/`, or compile your own `.exe` locally in seconds using `.\src\build.ps1`.
 
 </details>
