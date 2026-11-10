@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -261,6 +262,37 @@ namespace KennyPCOptimizer
             }
         }
 
+        private const int BeginSystemChange = 100;
+        private const int EndSystemChange = 101;
+        private const int ModifySettings = 12;
+        private const uint ErrorServiceDisabled = 1058u;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
+        private struct RESTOREPOINTINFOW
+        {
+            public int dwEventType;
+            public int dwRestorePtType;
+            public long llSequenceNumber;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            public string szDescription;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct STATEMGRSTATUS
+        {
+            public uint nStatus;
+            public long llSequenceNumber;
+        }
+
+        [DllImport("srclient.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SRSetRestorePointW(ref RESTOREPOINTINFOW pRestorePtSpec, out STATEMGRSTATUS pSMgrStatus);
+
+        public static bool VerifyRestorePointAbiSizes()
+        {
+            return Marshal.SizeOf(typeof(RESTOREPOINTINFOW)) == 528 && Marshal.SizeOf(typeof(STATEMGRSTATUS)) == 12;
+        }
+
         public static Dictionary<string, object> CreateWindowsRestorePoint(string description)
         {
             if (!SystemInfo.IsAdmin())
@@ -273,36 +305,55 @@ namespace KennyPCOptimizer
                 };
             }
 
-            string safeDesc = (description ?? "Kenny PC Optimizer").Replace("\"", "'").Replace("`", "");
-            if (safeDesc.Length > 64) safeDesc = safeDesc.Substring(0, 64);
-            string sysDrive = (Environment.GetEnvironmentVariable("SystemDrive") ?? "C:") + "\\";
+            string safeDesc = (description ?? "Kenny PC Optimizer").Replace("\"", "'").Replace("`", "").Trim();
+            if (string.IsNullOrEmpty(safeDesc)) safeDesc = "Kenny PC Optimizer";
+            if (safeDesc.Length > 255) safeDesc = safeDesc.Substring(0, 255);
+
             try
             {
-                ManagementScope scope = new ManagementScope(@"\\.\root\default");
-                scope.Connect();
-                using (ManagementClass mc = new ManagementClass(scope, new ManagementPath("SystemRestore"), new ObjectGetOptions()))
+                RESTOREPOINTINFOW rpInfo = new RESTOREPOINTINFOW
                 {
-                    try { mc.InvokeMethod("Enable", new object[] { sysDrive }); } catch { }
-                    // 12 = MODIFY_SETTINGS, 100 = BEGIN_SYSTEM_CHANGE
-                    object ret = mc.InvokeMethod("CreateRestorePoint", new object[] { safeDesc, 12, 100 });
-                    uint code = ret != null ? Convert.ToUInt32(ret) : 1u;
-                    if (code == 0u)
+                    dwEventType = BeginSystemChange,
+                    dwRestorePtType = ModifySettings,
+                    llSequenceNumber = 0,
+                    szDescription = safeDesc
+                };
+                STATEMGRSTATUS smgrStatus;
+                bool ok = SRSetRestorePointW(ref rpInfo, out smgrStatus);
+                if (ok && smgrStatus.nStatus == 0u)
+                {
+                    if (smgrStatus.llSequenceNumber > 0)
                     {
+                        rpInfo.dwEventType = EndSystemChange;
+                        rpInfo.llSequenceNumber = smgrStatus.llSequenceNumber;
+                        STATEMGRSTATUS endStatus;
+                        SRSetRestorePointW(ref rpInfo, out endStatus);
                         return new Dictionary<string, object>
                         {
                             { "status", "created" },
                             { "created", true },
-                            { "message", string.Format("Created Windows System Restore Point: '{0}'.", safeDesc) }
+                            { "sequence_number", smgrStatus.llSequenceNumber },
+                            { "message", string.Format("Created Windows System Restore Point #{0}: '{1}'.", smgrStatus.llSequenceNumber, safeDesc) }
                         };
                     }
-                    // ERROR_SUCCESS / frequency skip or disabled
                     return new Dictionary<string, object>
                     {
                         { "status", "skipped_or_warning" },
                         { "created", false },
-                        { "message", string.Format("Windows System Restore returned status code {0} (a recent restore point may already exist within 24 hours).", code) }
+                        { "message", "Windows System Restore skipped creation because a recent restore point already exists within 24 hours." }
                     };
                 }
+
+                uint code = smgrStatus.nStatus != 0u ? smgrStatus.nStatus : (uint)Marshal.GetLastWin32Error();
+                string detail = code == ErrorServiceDisabled
+                    ? "System Protection may be disabled on the system drive (error 1058)."
+                    : string.Format("Windows System Restore returned status code {0}.", code);
+                return new Dictionary<string, object>
+                {
+                    { "status", "skipped_or_warning" },
+                    { "created", false },
+                    { "message", detail }
+                };
             }
             catch (Exception ex)
             {

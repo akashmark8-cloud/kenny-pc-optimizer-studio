@@ -234,6 +234,7 @@ namespace KennyPCOptimizer.Tests
                 Dictionary<string, object> restFiles = BackupManager.RestoreFilesFromBackup(snapId, tmpBkp);
                 Assert(Convert.ToBoolean(restFiles["ok"]), "file restore ok");
                 Assert(File.ReadAllText(sampleOrigin) == "ORIGINAL_HISTORY_BYTES", "restored file content matches");
+                Assert(BackupManager.VerifyRestorePointAbiSizes(), "Win32 SRSetRestorePointW struct ABI sizes (528/12) matched");
 
                 Console.WriteLine("[PASS] TestRegistryAndBackupRestore");
             }
@@ -266,6 +267,7 @@ namespace KennyPCOptimizer.Tests
                     Assert(js.Contains("SESSION_TOKEN"), "embedded app.js served");
                     string health = wc.DownloadString(baseUrl + "/api/health");
                     Assert(health.Contains("\"ok\":true"), "health ok");
+                    Assert(health.Contains("\"version\":\"" + Config.AppVersion + "\""), "health matches Config.AppVersion");
                 }
 
                 // Auth guard check

@@ -8,7 +8,7 @@ namespace KennyPCOptimizer
     {
         public const string AppName = "Kenny PC Cleaner & Optimization Studio";
         public const string AppShortName = "KennyPCOptimizer";
-        public const string AppVersion = "2.0.0";
+        public const string AppVersion = "2.0.3";
 
         public static string AppRootLocal
         {
