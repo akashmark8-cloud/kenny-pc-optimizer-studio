@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Management;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -215,51 +216,38 @@ namespace KennyPCOptimizer
                 };
             }
 
-            string ps = "$ErrorActionPreference='Stop'; " +
-                        "Get-ComputerRestorePoint | Select-Object SequenceNumber, Description, RestorePointType, " +
-                        "@{Name='CreationTime';Expression={$_.ConvertToDateTime($_.CreationTime).ToString('yyyy-MM-dd HH:mm:ss')}} " +
-                        "| ConvertTo-Json -Compress";
-            string stdout, stderr;
-            int rc = RunHidden("powershell", "-NoProfile -Command \"" + ps.Replace("\"", "\\\"") + "\"", 25000, out stdout, out stderr);
-            if (rc != 0)
-            {
-                string err = !string.IsNullOrWhiteSpace(stderr) ? stderr.Trim() : stdout.Trim();
-                return new Dictionary<string, object>
-                {
-                    { "admin_required", false },
-                    { "restore_points", new List<object>() },
-                    { "message", string.IsNullOrEmpty(err) ? "System Protection may be disabled." : err }
-                };
-            }
-            string raw = (stdout ?? "").Trim();
-            if (string.IsNullOrEmpty(raw))
-            {
-                return new Dictionary<string, object>
-                {
-                    { "admin_required", false },
-                    { "restore_points", new List<object>() },
-                    { "message", "No restore points found yet." }
-                };
-            }
-
             try
             {
-                JavaScriptSerializer js = SystemInfo.CreateSerializer();
-                object parsed = js.DeserializeObject(raw);
                 List<object> list = new List<object>();
-                if (parsed is object[])
+                ManagementScope scope = new ManagementScope(@"\\.\root\default");
+                scope.Connect();
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(
+                    scope, new ObjectQuery("SELECT SequenceNumber, Description, RestorePointType, CreationTime FROM SystemRestore")))
                 {
-                    foreach (object item in (object[])parsed) list.Add(item);
-                }
-                else if (parsed != null)
-                {
-                    list.Add(parsed);
+                    foreach (ManagementObject obj in searcher.Get())
+                    {
+                        string created = "";
+                        try
+                        {
+                            string rawDt = (obj["CreationTime"] ?? "").ToString();
+                            if (!string.IsNullOrEmpty(rawDt))
+                                created = ManagementDateTimeConverter.ToDateTime(rawDt).ToString("yyyy-MM-dd HH:mm:ss");
+                        }
+                        catch { }
+                        list.Add(new Dictionary<string, object>
+                        {
+                            { "SequenceNumber", obj["SequenceNumber"] },
+                            { "Description", (obj["Description"] ?? "").ToString() },
+                            { "RestorePointType", obj["RestorePointType"] },
+                            { "CreationTime", created }
+                        });
+                    }
                 }
                 return new Dictionary<string, object>
                 {
                     { "admin_required", false },
                     { "restore_points", list },
-                    { "message", string.Format("Found {0} Windows Restore Point(s).", list.Count) }
+                    { "message", list.Count > 0 ? string.Format("Found {0} Windows Restore Point(s).", list.Count) : "No restore points found yet." }
                 };
             }
             catch (Exception ex)
@@ -268,7 +256,7 @@ namespace KennyPCOptimizer
                 {
                     { "admin_required", false },
                     { "restore_points", new List<object>() },
-                    { "message", ex.Message }
+                    { "message", "System Protection may be disabled: " + ex.Message }
                 };
             }
         }
@@ -288,44 +276,43 @@ namespace KennyPCOptimizer
             string safeDesc = (description ?? "Kenny PC Optimizer").Replace("\"", "'").Replace("`", "");
             if (safeDesc.Length > 64) safeDesc = safeDesc.Substring(0, 64);
             string sysDrive = (Environment.GetEnvironmentVariable("SystemDrive") ?? "C:") + "\\";
-            string ps = string.Format(
-                "$drive = '{0}'; " +
-                "try {{ Enable-ComputerRestore -Drive $drive -ErrorAction SilentlyContinue }} catch {{}}; " +
-                "$warn = $null; " +
-                "Checkpoint-Computer -Description '{1}' -RestorePointType 'MODIFY_SETTINGS' -WarningVariable warn -ErrorAction Stop; " +
-                "if ($warn) {{ Write-Output ('WARN:' + ($warn -join ' ')) }} else {{ Write-Output 'CREATED_OK' }}",
-                sysDrive,
-                safeDesc.Replace("'", "''")
-            );
-            string stdout, stderr;
-            int rc = RunHidden("powershell", "-NoProfile -Command \"" + ps.Replace("\"", "\\\"") + "\"", 90000, out stdout, out stderr);
-            string outTrim = (stdout ?? "").Trim();
-            string errTrim = (stderr ?? "").Trim();
-            if (rc == 0)
+            try
             {
-                if (outTrim.StartsWith("WARN:"))
+                ManagementScope scope = new ManagementScope(@"\\.\root\default");
+                scope.Connect();
+                using (ManagementClass mc = new ManagementClass(scope, new ManagementPath("SystemRestore"), new ObjectGetOptions()))
                 {
-                    string warnMsg = outTrim.Substring(5).Trim();
+                    try { mc.InvokeMethod("Enable", new object[] { sysDrive }); } catch { }
+                    // 12 = MODIFY_SETTINGS, 100 = BEGIN_SYSTEM_CHANGE
+                    object ret = mc.InvokeMethod("CreateRestorePoint", new object[] { safeDesc, 12, 100 });
+                    uint code = ret != null ? Convert.ToUInt32(ret) : 1u;
+                    if (code == 0u)
+                    {
+                        return new Dictionary<string, object>
+                        {
+                            { "status", "created" },
+                            { "created", true },
+                            { "message", string.Format("Created Windows System Restore Point: '{0}'.", safeDesc) }
+                        };
+                    }
+                    // ERROR_SUCCESS / frequency skip or disabled
                     return new Dictionary<string, object>
                     {
-                        { "status", "skipped_frequency" },
+                        { "status", "skipped_or_warning" },
                         { "created", false },
-                        { "message", string.IsNullOrEmpty(warnMsg) ? "Windows skipped creation because a recent restore point already exists within 24 hours." : warnMsg }
+                        { "message", string.Format("Windows System Restore returned status code {0} (a recent restore point may already exist within 24 hours).", code) }
                     };
                 }
+            }
+            catch (Exception ex)
+            {
                 return new Dictionary<string, object>
                 {
-                    { "status", "created" },
-                    { "created", true },
-                    { "message", string.Format("Created Windows System Restore Point: '{0}'.", safeDesc) }
+                    { "status", "failed" },
+                    { "created", false },
+                    { "message", "System Restore note: " + ex.Message }
                 };
             }
-            return new Dictionary<string, object>
-            {
-                { "status", "failed" },
-                { "created", false },
-                { "message", !string.IsNullOrEmpty(errTrim) ? errTrim : (!string.IsNullOrEmpty(outTrim) ? outTrim : "Failed to create Windows System Restore Point.") }
-            };
         }
 
         public static bool LaunchWindowsSystemRestore()

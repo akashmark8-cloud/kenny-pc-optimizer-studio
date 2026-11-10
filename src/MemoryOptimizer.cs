@@ -507,7 +507,6 @@ namespace KennyPCOptimizer
 
             bool hasProfilePriv = EnablePrivilege("SeProfileSingleProcessPrivilege");
             bool hasQuotaPriv = EnablePrivilege("SeIncreaseQuotaPrivilege");
-            EnablePrivilege("SeDebugPrivilege");
 
             List<Dictionary<string, object>> results = new List<Dictionary<string, object>>();
             long combinedBytes = 0;

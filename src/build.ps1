@@ -16,6 +16,7 @@ $IconPath = Join-Path $SrcDir "assets\app_icon.ico"
 $ManifestPath = Join-Path $SrcDir "app.manifest"
 
 $CsFiles = @(
+    (Join-Path $SrcDir "AssemblyInfo.cs"),
     (Join-Path $SrcDir "Config.cs"),
     (Join-Path $SrcDir "SystemInfo.cs"),
     (Join-Path $SrcDir "SqliteHelper.cs"),
