@@ -113,9 +113,22 @@ flowchart TD
 
 ## 🔒 Build Verification & Transparency
 
-- Every release binary is compiled directly on GitHub's `windows-latest` runner via [ci-and-release.yml](.github/workflows/ci-and-release.yml) with **SLSA build provenance attestation**.
-- Each release attaches `SHA256SUMS.txt` and a direct **VirusTotal** SHA-256 verification link inside the Release Notes.
+- **Latest Release (`v2.0.2`)**: [`Kenny_PC_Optimizer_Suite.exe`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.2/Kenny_PC_Optimizer_Suite.exe) (`301,056` bytes)
+- **SHA-256 (`v2.0.2`)**: `19eabb13d657634634955e05e751932104b08ad17a49a9128c040d9a7bab9f7a` ([`SHA256SUMS.txt`](https://github.com/akashmark8-cloud/kenny-pc-optimizer-studio/releases/download/v2.0.2/SHA256SUMS.txt))
+- **VirusTotal (`v2.0.2`)**: https://www.virustotal.com/gui/file/19eabb13d657634634955e05e751932104b08ad17a49a9128c040d9a7bab9f7a
+- **SLSA Provenance**: Every release binary is compiled directly on GitHub's `windows-latest` runner via [ci-and-release.yml](.github/workflows/ci-and-release.yml) with **SLSA build provenance attestation** (`gh attestation verify Kenny_PC_Optimizer_Suite.exe --owner akashmark8-cloud`).
+- **Windows Defender**: Verified clean locally via `MpCmdRun.exe` (`0 threats`).
+- **Hardening (`v2.0.2`)**: Added full PE `AssemblyInfo` metadata, replaced `powershell.exe` subprocess calls with native WMI (`root\default:SystemRestore`), and removed unnecessary `SeDebugPrivilege` to minimize false-positive heuristics on unsigned builds.
 - Zero external runtime downloads, zero background telemetry, and an interactive **Simulation (Dry-Run)** mode to preview every operation safely.
+
+<details>
+<summary>Why can an unsigned Windows system utility trigger SmartScreen or 1–3 VirusTotal heuristic flags?</summary>
+
+- `Kenny_PC_Optimizer_Suite.exe` is an **unsigned** open-source `.exe` that legitimately calls Windows maintenance APIs (`reg.exe`, `winsqlite3.dll`, `NtSetSystemInformation`, `EmptyWorkingSet`, and `ServiceController`).
+- On `v2.0.1`, 44/47 VirusTotal engines (including Microsoft Defender and CrowdStrike Falcon) reported `Undetected`, while 3 heuristic/unknown-hash engines flagged generic warnings (such as `McAfee Scanner: Ti!C9231F2D67AE`, which flags newly seen unsigned SHA-256 hashes with zero prior prevalence).
+- You can always verify integrity using `gh attestation verify`, inspect every line in `src/`, or compile your own `.exe` locally in seconds using `.\src\build.ps1`.
+
+</details>
 
 ---
 
