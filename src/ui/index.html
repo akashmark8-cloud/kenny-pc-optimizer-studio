@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kenny PC Cleaner & Optimization Studio</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Left Command Rail -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="34" height="34">
+            <defs>
+              <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f0ff" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+            <path d="M20 3 L34 9 V19 C34 28 28 34.5 20 37 C12 34.5 6 28 6 19 V9 Z" fill="rgba(0,240,255,0.12)" stroke="url(#brandGrad)" stroke-width="2.2"/>
+            <path d="M22 10 L14 21 H20 L18 30 L26 19 H20 Z" fill="url(#brandGrad)"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">KENNY STUDIO</div>
+          <div class="brand-sub">PC Optimizer v2.0</div>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-btn active" data-tab="dashboard">
+          <span class="nav-icon">◈</span>
+          <span class="nav-label">Command Center</span>
+        </button>
+        <button class="nav-btn" data-tab="system">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">System &amp; Games</span>
+          <span class="nav-badge" id="badge-system">--</span>
+        </button>
+        <button class="nav-btn" data-tab="browsers">
+          <span class="nav-icon">🌐</span>
+          <span class="nav-label">Browser Cleaner</span>
+          <span class="nav-badge" id="badge-browsers">--</span>
+        </button>
+        <button class="nav-btn" data-tab="registry">
+          <span class="nav-icon">🧬</span>
+          <span class="nav-label">Registry Empty Keys</span>
+          <span class="nav-badge" id="badge-registry">--</span>
+        </button>
+        <button class="nav-btn" data-tab="memory">
+          <span class="nav-icon">🚀</span>
+          <span class="nav-label">RAM Optimizer</span>
+          <span class="nav-badge" id="badge-memory">--%</span>
+        </button>
+        <button class="nav-btn" data-tab="advisor">
+          <span class="nav-icon">🧩</span>
+          <span class="nav-label">Drivers &amp; Apps</span>
+          <span class="nav-badge" id="badge-advisor">--</span>
+        </button>
+        <button class="nav-btn" data-tab="backups">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Backup &amp; Recovery</span>
+          <span class="nav-badge" id="badge-backups">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="mini-drive-card">
+          <div class="mini-drive-head">
+            <span>System Drive (C:)</span>
+            <span id="sidebar-c-free">-- GB free</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="sidebar-c-bar" style="width: 0%"></div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm w-full" id="btn-sidebar-open-vault">
+          📂 Open Backup Vault
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-area">
+      <!-- Top Command Header -->
+      <header class="topbar">
+        <div class="topbar-meta">
+          <span class="meta-pill" id="pill-host">PC: --</span>
+          <span class="meta-pill" id="pill-os">Windows --</span>
+          <button class="meta-pill admin-pill" id="btn-admin-status" title="Click to elevate privileges if needed">
+            Checking Privileges...
+          </button>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="mode-switch" title="Dry-Run simulates everything without deleting files or registry keys">
+            <input type="checkbox" id="toggle-dry-run" />
+            <span class="mode-slider"></span>
+            <span class="mode-label" id="dry-run-label">LIVE MODE</span>
+          </label>
+
+          <button class="btn btn-icon" id="btn-sound-toggle" title="Toggle UI sound effects">
+            🔊
+          </button>
+
+          <button class="btn btn-primary" id="btn-smart-scan">
+            <span class="pulse-dot"></span> Smart Deep Scan
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Views Container -->
+      <main class="content-scroll">
+        <!-- VIEW 1: COMMAND CENTER -->
+        <section class="tab-view active" id="view-dashboard">
+          <div class="hero-grid">
+            <div class="glass-card hero-gauge-card">
+              <div class="gauge-wrap">
+                <svg class="radial-svg" viewBox="0 0 180 180">
+                  <circle class="radial-bg" cx="90" cy="90" r="76" />
+                  <circle class="radial-fg" id="hero-gauge-ring" cx="90" cy="90" r="76" stroke-dasharray="477.5" stroke-dashoffset="120" />
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-value" id="hero-reclaim-size">READY</div>
+                  <div class="gauge-sub" id="hero-reclaim-sub">Run Deep Scan</div>
+                </div>
+              </div>
+              <div class="hero-gauge-meta">
+                <h2>System Optimization Pulse</h2>
+                <p id="hero-summary-text">
+                  Replaces <strong>Master_Delete.bat</strong> with full multi-browser scrubbing,
+                  safe registry empty-folder cleanup, and automatic Registry + PC Backups.
+                </p>
+                <div class="hero-stats-row">
+                  <div class="stat-mini">
+                    <span class="stat-mini-label">Lifetime Freed</span>
+                    <span class="stat-mini-val cyan" id="stat-lifetime-freed">0.00 MB</span>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-label">Files Cleaned</span>
+                    <span class="stat-mini-val emerald" id="stat-lifetime-files">0</span>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-label">Reg Keys Cleaned</span>
+                    <span class="stat-mini-val violet" id="stat-lifetime-reg">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card telemetry-card">
+              <div class="card-head">
+                <h3>Live System Telemetry</h3>
+                <span class="live-chip">● LIVE</span>
+              </div>
+              <div class="telemetry-bars">
+                <div class="tele-row">
+                  <div class="tele-label"><span>CPU Load</span><span id="tele-cpu-val">0%</span></div>
+                  <div class="progress-track"><div class="progress-fill cyan" id="tele-cpu-bar" style="width:0%"></div></div>
+                </div>
+                <div class="tele-row">
+                  <div class="tele-label"><span>RAM Usage</span><span id="tele-ram-val">0 / 0 GB</span></div>
+                  <div class="progress-track"><div class="progress-fill violet" id="tele-ram-bar" style="width:0%"></div></div>
+                </div>
+              </div>
+              <div class="drives-list" id="dashboard-drives"></div>
+            </div>
+          </div>
+
+          <div class="quick-actions-grid">
+            <button class="action-tile tile-cyan" id="btn-quick-bat">
+              <div class="tile-badge">MASTER_DELETE.BAT [A]</div>
+              <div class="tile-title">Run BAT Recommended Preset</div>
+              <div class="tile-desc">User Temp, Win Temp, NVIDIA DXCache, Recycle Bin, Update Cache &amp; CS2/PUBG Dumps (with backup)</div>
+            </button>
+
+            <button class="action-tile tile-emerald" id="btn-quick-all">
+              <div class="tile-badge">FULL SUITE PIPELINE</div>
+              <div class="tile-title">Deep Optimize Everything</div>
+              <div class="tile-desc">Auto Registry + PC Backup → System &amp; Games → All Browsers History/Cache → Empty Registry Folders</div>
+            </button>
+
+            <button class="action-tile tile-amber" id="btn-quick-backup">
+              <div class="tile-badge">SAFETY CHECKPOINT</div>
+              <div class="tile-title">Create Instant PC &amp; Reg Backup</div>
+              <div class="tile-desc">Export HKCU/HKLM hives, snapshot browser DBs &amp; create a Windows System Restore Point</div>
+            </button>
+
+            <button class="action-tile tile-violet" id="btn-quick-ram">
+              <div class="tile-badge">LIVE MEMORY BOOST</div>
+              <div class="tile-title">Boost &amp; Free RAM Now</div>
+              <div class="tile-desc">Trim process working sets, purge low-priority standby cache, flush system cache &amp; combine pages</div>
+            </button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-head">
+              <h3>Recent Optimization Activity</h3>
+              <span class="muted" id="last-clean-label">No runs recorded yet</span>
+            </div>
+            <div class="activity-list" id="activity-list">
+              <div class="empty-state">Run a cleanup or backup to see your verified history here.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 2: SYSTEM & GAME CLEANER -->
+        <section class="tab-view" id="view-system">
+          <div class="view-header">
+            <div>
+              <h2>System, Shader, Dev &amp; Game Cleaner</h2>
+              <p>Complete interactive upgrade of <strong>Master_Delete.bat</strong> with real-time path &amp; byte inspection.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-ghost btn-sm" id="btn-sys-select-bat">BAT Preset [A]</button>
+              <button class="btn btn-ghost btn-sm" id="btn-sys-select-all">Select All</button>
+              <button class="btn btn-ghost btn-sm" id="btn-sys-select-none">Clear</button>
+              <button class="btn btn-secondary btn-sm" id="btn-sys-rescan">↻ Rescan</button>
+            </div>
+          </div>
+
+          <div class="cards-grid" id="system-targets-grid">
+            <div class="empty-state">Click <strong>Smart Deep Scan</strong> or <strong>Rescan</strong> to inspect system targets.</div>
+          </div>
+
+          <div class="sticky-footer-bar">
+            <div class="footer-summary">
+              Selected: <strong id="sys-selected-summary">0 targets (0 B)</strong>
+            </div>
+            <button class="btn btn-primary" id="btn-sys-clean">
+              ⚡ Clean Selected System Targets
+            </button>
+          </div>
+        </section>
+
+        <!-- VIEW 3: BROWSER DEEP CLEANER -->
+        <section class="tab-view" id="view-browsers">
+          <div class="view-header">
+            <div>
+              <h2>Universal Multi-Browser Cleaner</h2>
+              <p>Detects every installed &amp; uninstalled leftover browser. Scrubs Firefox history while <strong>preserving bookmarks</strong>.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-ghost btn-sm" id="btn-br-toggle-history">Toggle History</button>
+              <button class="btn btn-ghost btn-sm" id="btn-br-toggle-cache">Toggle Caches</button>
+              <button class="btn btn-ghost btn-sm" id="btn-br-toggle-leftovers">Toggle Leftovers</button>
+              <button class="btn btn-secondary btn-sm" id="btn-br-rescan">↻ Rescan Browsers</button>
+            </div>
+          </div>
+
+          <div class="alert-banner warning hidden" id="running-browsers-banner">
+            <div>
+              <strong>Running Browsers Detected:</strong> <span id="running-browsers-names"></span>.
+              Close them before cleaning so History &amp; Cache files aren't locked.
+            </div>
+            <button class="btn btn-warning btn-sm" id="btn-close-browsers">
+              Close Running Browsers
+            </button>
+          </div>
+
+          <div class="browser-grid" id="browsers-grid">
+            <div class="empty-state">Scanning browsers...</div>
+          </div>
+
+          <div class="sticky-footer-bar">
+            <div class="footer-summary">
+              Selected Browser Data: <strong id="br-selected-summary">0 B</strong>
+            </div>
+            <button class="btn btn-primary" id="btn-br-clean">
+              🌐 Backup History &amp; Clean Browsers
+            </button>
+          </div>
+        </section>
+
+        <!-- VIEW 4: REGISTRY EMPTY FOLDERS -->
+        <section class="tab-view" id="view-registry">
+          <div class="view-header">
+            <div>
+              <h2>Registry Empty Folders Cleaner</h2>
+              <p>Safely locates keys with <strong>0 values &amp; empty subtrees</strong>. Protected Windows OS hives are strictly excluded.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-secondary btn-sm" id="btn-reg-rescan">↻ Rescan Registry</button>
+            </div>
+          </div>
+
+          <div class="alert-banner safe">
+            <div>
+              <strong>Mandatory Safety Gate Active:</strong> Cleaning empty registry folders will
+              <strong>automatically export a full Registry Backup (.reg) + PC Snapshot</strong> before deleting any key.
+            </div>
+          </div>
+
+          <div class="toolbar-row">
+            <input type="text" class="search-input" id="reg-search" placeholder="Filter by registry path or vendor..." />
+            <select class="select-input" id="reg-hive-filter">
+              <option value="ALL">All Hives (HKCU + HKLM)</option>
+              <option value="HKCU">HKCU Only (Standard)</option>
+              <option value="HKLM">HKLM Only (Admin)</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" id="btn-reg-select-all">Select All Accessible</button>
+            <button class="btn btn-ghost btn-sm" id="btn-reg-select-none">Deselect All</button>
+          </div>
+
+          <div class="glass-card table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:42px"><input type="checkbox" id="reg-master-chk" /></th>
+                  <th style="width:80px">Hive</th>
+                  <th style="width:130px">Type</th>
+                  <th style="width:150px">Vendor</th>
+                  <th>Registry Key Path</th>
+                  <th style="width:120px">Access</th>
+                </tr>
+              </thead>
+              <tbody id="reg-table-body">
+                <tr><td colspan="6" class="empty-cell">Click Rescan Registry to detect empty registry folders.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sticky-footer-bar">
+            <div class="footer-summary">
+              Selected Empty Keys: <strong id="reg-selected-summary">0 key(s)</strong>
+            </div>
+            <button class="btn btn-primary" id="btn-reg-clean">
+              🧬 Create Backup &amp; Clean Empty Keys
+            </button>
+          </div>
+        </section>
+
+        <!-- VIEW 5: RAM & MEMORY OPTIMIZER -->
+        <section class="tab-view" id="view-memory">
+          <div class="view-header">
+            <div>
+              <h2>RAM &amp; Kernel Memory Optimizer</h2>
+              <p>Real-time working set, standby list, system file cache, and physical page combiner — plus per-process selective trimming.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-ghost btn-sm" id="btn-mem-preset-safe">Safe Smart Boost</button>
+              <button class="btn btn-ghost btn-sm" id="btn-mem-preset-deep">Deep Purge (All)</button>
+              <button class="btn btn-secondary btn-sm" id="btn-mem-refresh">↻ Refresh RAM</button>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-head">
+              <h3>Physical &amp; Cache Memory Map</h3>
+              <span class="size-pill" id="mem-summary-pill">-- / -- GB</span>
+            </div>
+            <div class="mem-stack-bar" id="mem-stack-bar">
+              <div class="mem-seg active" id="mem-seg-active" style="width:40%" title="Active In-Use"></div>
+              <div class="mem-seg standby" id="mem-seg-standby" style="width:30%" title="Standby Cache"></div>
+              <div class="mem-seg modified" id="mem-seg-modified" style="width:5%" title="Modified Pages"></div>
+              <div class="mem-seg free" id="mem-seg-free" style="width:25%" title="Free / Zeroed"></div>
+            </div>
+            <div class="mem-legend-grid" id="mem-legend-grid"></div>
+          </div>
+
+          <div class="cards-grid" id="mem-areas-grid"></div>
+
+          <div class="backup-split">
+            <div class="glass-card table-card" style="max-height:340px">
+              <div class="card-head" style="padding:14px 16px 6px;margin-bottom:0">
+                <h3>Top RAM Consumers (Selective Trim)</h3>
+                <span class="muted">Trim single apps safely</span>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Process</th>
+                    <th style="width:70px">PID</th>
+                    <th style="width:110px">Working Set</th>
+                    <th style="width:105px">Private</th>
+                    <th style="width:90px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="mem-procs-body">
+                  <tr><td colspan="5" class="empty-cell">Loading processes...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="glass-card" style="display:flex;flex-direction:column;gap:12px">
+              <div class="card-head" style="margin-bottom:2px">
+                <h3>Auto-Boost Rules &amp; History</h3>
+              </div>
+              <label class="chk-pill">
+                <input type="checkbox" id="chk-ram-auto-thresh" />
+                Auto-clean when RAM exceeds
+                <input type="number" id="num-ram-thresh" min="50" max="98" value="80" class="num-inline" /> %
+              </label>
+              <label class="chk-pill">
+                <input type="checkbox" id="chk-ram-auto-int" />
+                Auto-clean every
+                <input type="number" id="num-ram-int" min="1" max="1440" value="30" class="num-inline" /> min
+              </label>
+              <button class="btn btn-secondary btn-sm" id="btn-save-ram-rules">💾 Save Auto-Boost Rules</button>
+              <div class="snapshots-list" id="mem-history-list" style="max-height:150px;overflow-y:auto">
+                <div class="empty-state" style="padding:14px">No RAM boosts run in this session yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sticky-footer-bar">
+            <div class="footer-summary">
+              Selected Memory Areas: <strong id="mem-selected-summary">4 safe area(s)</strong>
+            </div>
+            <button class="btn btn-primary" id="btn-mem-boost">
+              🚀 Optimize Selected Memory Areas
+            </button>
+          </div>
+        </section>
+
+        <!-- VIEW 6: DRIVERS, APP UPDATES & ESSENTIALS -->
+        <section class="tab-view" id="view-advisor">
+          <div class="view-header">
+            <div>
+              <h2>Drivers, App Updates &amp; Smooth-PC Essentials</h2>
+              <p>Inspect signed hardware drivers, check Windows Update &amp; Winget app updates, and install recommended system utilities.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-ghost btn-sm" id="btn-adv-wu">🪟 Windows Update</button>
+              <button class="btn btn-ghost btn-sm" id="btn-adv-devmgmt">⚙ Device Manager</button>
+              <button class="btn btn-primary btn-sm" id="btn-adv-scan">↻ Scan Drivers &amp; Updates</button>
+            </div>
+          </div>
+
+          <div class="glass-card" id="adv-hw-summary">
+            <div class="empty-state" style="padding:14px">Click <strong>Scan Drivers &amp; Updates</strong> to inspect hardware, Windows Update, winget packages, and essential runtimes.</div>
+          </div>
+
+          <div class="backup-split">
+            <div class="glass-card table-card" style="max-height:320px">
+              <div class="card-head" style="padding:14px 16px 8px;margin-bottom:0">
+                <h3>Available App Updates (winget)</h3>
+                <button class="btn btn-secondary btn-sm hidden" id="btn-adv-update-all">⬆ Update All</button>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Current</th>
+                    <th>Available</th>
+                    <th style="width:95px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adv-updates-body">
+                  <tr><td colspan="4" class="empty-cell">Run scan to check available updates.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="glass-card" style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto">
+              <div class="card-head" style="margin-bottom:0">
+                <h3>Smooth PC / Laptop Essentials</h3>
+              </div>
+              <div id="adv-essentials-list" class="snapshots-list">
+                <div class="empty-state" style="padding:14px">Run scan to evaluate installed runtimes &amp; smoothness tools.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card table-card" style="max-height:320px">
+            <div class="card-head" style="padding:14px 16px 8px;margin-bottom:0">
+              <h3>Installed Hardware Drivers</h3>
+              <input type="text" class="search-input" id="adv-driver-search" style="max-width:260px;padding:5px 10px" placeholder="Filter drivers..." />
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:110px">Class</th>
+                  <th>Device Name</th>
+                  <th style="width:140px">Version</th>
+                  <th style="width:105px">Date</th>
+                  <th style="width:140px">Manufacturer</th>
+                  <th style="width:105px">Status</th>
+                </tr>
+              </thead>
+              <tbody id="adv-drivers-body">
+                <tr><td colspan="6" class="empty-cell">Run scan to list signed system drivers.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- VIEW 7: BACKUP & RECOVERY VAULT -->
+        <section class="tab-view" id="view-backups">
+          <div class="view-header">
+            <div>
+              <h2>Backup &amp; Recovery Vault</h2>
+              <p>Access, verify, and 1-click restore Registry backups, PC file snapshots, or launch Windows System Restore.</p>
+            </div>
+            <div class="view-controls">
+              <button class="btn btn-ghost btn-sm" id="btn-vault-open">📂 Open Vault Folder</button>
+              <button class="btn btn-warning btn-sm" id="btn-launch-rstrui">🛡️ Launch Windows Restore (rstrui)</button>
+              <button class="btn btn-secondary btn-sm" id="btn-backups-refresh">↻ Refresh</button>
+            </div>
+          </div>
+
+          <div class="glass-card create-backup-card">
+            <div class="card-head">
+              <h3>Create Full Safety Checkpoint</h3>
+              <span class="muted" id="backup-root-display">Vault: --</span>
+            </div>
+            <div class="backup-options-row">
+              <input type="text" class="search-input" id="backup-reason-input" value="Manual Full Safety Checkpoint" placeholder="Backup label..." />
+              <label class="chk-pill"><input type="checkbox" id="chk-bkp-reg" checked /> Full Registry Hives</label>
+              <label class="chk-pill"><input type="checkbox" id="chk-bkp-files" checked /> Browser History DBs &amp; PC State</label>
+              <label class="chk-pill"><input type="checkbox" id="chk-bkp-rp" checked /> Windows System Restore Point</label>
+              <button class="btn btn-primary" id="btn-create-backup-now">🛡️ Create Backup Now</button>
+            </div>
+          </div>
+
+          <div class="backup-split">
+            <div class="glass-card">
+              <div class="card-head">
+                <h3>Saved Backup Snapshots</h3>
+                <span class="muted" id="snapshots-count-label">0 snapshots</span>
+              </div>
+              <div class="snapshots-list" id="snapshots-list">
+                <div class="empty-state">No snapshots created yet.</div>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-head">
+                <h3>Windows System Restore Points</h3>
+              </div>
+              <div id="windows-rp-container">
+                <div class="empty-state">Loading restore points...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Collapsible Diagnostic Console Drawer -->
+      <div class="console-drawer" id="console-drawer">
+        <div class="console-bar" id="btn-toggle-console">
+          <span>▸ DIAGNOSTIC LIVE CONSOLE</span>
+          <span class="console-status" id="console-last-line">Ready</span>
+        </div>
+        <div class="console-body" id="console-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Pipeline Execution Modal -->
+  <div class="modal-backdrop hidden" id="job-modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 id="job-modal-title">Executing Safe Pipeline...</h3>
+          <p class="muted" id="job-modal-phase">Initializing...</p>
+        </div>
+        <span class="job-percent" id="job-modal-percent">0%</span>
+      </div>
+
+      <div class="pipeline-steps" id="pipeline-steps">
+        <div class="pipe-step" data-step="1">1. Registry &amp; PC Backup</div>
+        <div class="pipe-step" data-step="2">2. System &amp; Game Clean</div>
+        <div class="pipe-step" data-step="3">3. Browser Scrub</div>
+        <div class="pipe-step" data-step="4">4. Registry &amp; Verify</div>
+      </div>
+
+      <div class="progress-track lg">
+        <div class="progress-fill cyan" id="job-modal-bar" style="width: 5%"></div>
+      </div>
+
+      <div class="modal-log-box" id="job-modal-logs"></div>
+
+      <div class="modal-summary hidden" id="job-modal-summary"></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary hidden" id="btn-job-close">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Snapshot Inspector Modal -->
+  <div class="modal-backdrop hidden" id="inspect-modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 id="inspect-modal-title">Snapshot Details</h3>
+          <p class="muted" id="inspect-modal-sub"></p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-inspect-close">✕</button>
+      </div>
+      <div class="inspect-body" id="inspect-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

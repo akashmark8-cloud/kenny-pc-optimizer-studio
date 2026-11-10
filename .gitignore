@@ -1,0 +1,15 @@
+# Compiled binaries (distributed via GitHub Releases)
+*.exe
+*.pdb
+*.dll
+*.pyc
+__pycache__/
+bin/
+obj/
+
+# IDE & OS temporary files
+.vs/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
