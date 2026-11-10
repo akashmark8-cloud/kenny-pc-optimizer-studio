@@ -91,23 +91,24 @@ jobs:
           $tag = $env:GITHUB_REF_NAME
           $runUrl = "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)/actions/runs/$($env:GITHUB_RUN_ID)"
           $vtUrl = "https://www.virustotal.com/gui/file/$($env:SHA256)"
-          $notes = @"
-## Kenny PC Cleaner & Optimization Studio ($tag)
-
-Built reproducibly from source on GitHub Actions (\`windows-latest\`) with all 6 test suites and \`--self-check\` passing.
-
-### Verification & Trust
-- **SHA-256**: \`$($env:SHA256)\` (also attached in \`SHA256SUMS.txt\`)
-- **VirusTotal Lookup**: $vtUrl
-- **GitHub Actions Build Run**: $runUrl
-- **SLSA Build Provenance**: Attested directly in GitHub Actions
-
-### Features Included
-- **System, Shader, Dev & Game Cleaner**: Upgrades \`Master_Delete.bat\` (User/Win Temp, NVIDIA DXCache, Recycle Bin, \`wuauserv\` Update Cache, \`npm\`/\`pip\`, CS2 \`.mdmp\` across all Steam libraries + PUBG crashes/logs)
-- **Universal Multi-Browser Cleaner**: Chromium, Gecko, IE/WebCache + bookmark-safe Firefox \`places.sqlite\` scrubbing (\`winsqlite3.dll\`)
-- **Safe Empty-Registry Cleaner**: Scans \`HKCU\Software\`, \`HKLM\SOFTWARE\`, and \`WOW6432Node\` excluding OS keys, deleting bottom-up after re-verification
-- **Mandatory Pre-Clean Backup Vault**: Surgical \`.reg\` undo, full hive ZIP exports, PC snapshot ZIP, Windows Restore Point, and SHA-256 verification
-- **NT Kernel & Per-Process RAM Optimizer**: Working sets, low-priority standby, system file cache, physical page combiner, per-process trim, and Auto-Boost
-- **Drivers, App Updates & Essentials Advisor**: Hardware/BIOS/driver scan, Windows Update COM check, \`winget\` updates & 1-click essential runtime installs
-"@
-          gh release create $tag .\Kenny_PC_Optimizer_Suite.exe .\SHA256SUMS.txt --title "Kenny PC Cleaner & Optimization Studio $tag" --notes $notes
+          $lines = @(
+            "## Kenny PC Cleaner & Optimization Studio ($tag)",
+            "",
+            "Built reproducibly from source on GitHub Actions (``windows-latest``) with all 6 test suites and ``--self-check`` passing.",
+            "",
+            "### Verification & Trust",
+            "- **SHA-256**: ``$($env:SHA256)`` (also attached in ``SHA256SUMS.txt``)",
+            "- **VirusTotal Lookup**: $vtUrl",
+            "- **GitHub Actions Build Run**: $runUrl",
+            "- **SLSA Build Provenance**: Attested directly in GitHub Actions",
+            "",
+            "### Features Included",
+            "- **System, Shader, Dev & Game Cleaner**: Upgrades ``Master_Delete.bat`` (User/Win Temp, NVIDIA DXCache, Recycle Bin, ``wuauserv`` Update Cache, ``npm``/``pip``, CS2 ``.mdmp`` across all Steam libraries + PUBG crashes/logs)",
+            "- **Universal Multi-Browser Cleaner**: Chromium, Gecko, IE/WebCache + bookmark-safe Firefox ``places.sqlite`` scrubbing (``winsqlite3.dll``)",
+            "- **Safe Empty-Registry Cleaner**: Scans ``HKCU\Software``, ``HKLM\SOFTWARE``, and ``WOW6432Node`` excluding OS keys, deleting bottom-up after re-verification",
+            "- **Mandatory Pre-Clean Backup Vault**: Surgical ``.reg`` undo, full hive ZIP exports, PC snapshot ZIP, Windows Restore Point, and SHA-256 verification",
+            "- **NT Kernel & Per-Process RAM Optimizer**: Working sets, low-priority standby, system file cache, physical page combiner, per-process trim, and Auto-Boost",
+            "- **Drivers, App Updates & Essentials Advisor**: Hardware/BIOS/driver scan, Windows Update COM check, ``winget`` updates & 1-click essential runtime installs"
+          )
+          $lines -join "`n" | Out-File -FilePath .\RELEASE_NOTES.md -Encoding utf8
+          gh release create $tag .\Kenny_PC_Optimizer_Suite.exe .\SHA256SUMS.txt --title "Kenny PC Cleaner & Optimization Studio $tag" --notes-file .\RELEASE_NOTES.md
