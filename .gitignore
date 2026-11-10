@@ -1,8 +1,9 @@
-# Compiled binaries (distributed via GitHub Releases)
+# Compiled binaries & showcase media
 *.exe
 *.pdb
 *.dll
 *.pyc
+*.mp4
 __pycache__/
 bin/
 obj/
